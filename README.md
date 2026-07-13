@@ -1,8 +1,5 @@
-Let's build this out properly. We already did **Empathize** — here's the rest of the arc.
 
----
-
-**1. Empathize** ✅ (already covered)
+**1. Empathize** 
 Stakeholders: SOC team, IT/security admins, privileged users, compliance, and indirectly the customer. Core tensions: alert fatigue, slow detection, fear of unfair accusation, need for explainability.
 
 ---
@@ -52,7 +49,3 @@ Since you won't have real users to test with in this timeframe, "test" here mean
 - Run your detection logic against your synthetic dataset and check: does it catch the injected anomalies? What's the false positive rate on "normal" behavior?
 - Walk through the dashboard with a teammate playing "SOC analyst" — can they understand *why* something was flagged in under 10 seconds?
 - Sanity-check the story against the evaluation criteria (business relevance, security, originality) before submission — essentially a mini judge-panel dry run.
-
----
-
-Want to move to **Define** in more depth right now (writing the actual problem statement + HMW questions properly for your submission), or go straight into **Ideate/Prototype** since we've already sketched the direction?
