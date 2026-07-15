@@ -20,6 +20,7 @@ export default function App() {
     const [globalSearchQuery, setGlobalSearchQuery] = useState('');
     const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
     const [toasts, setToasts] = useState([]);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // ----------------------------------------------------
     // INITIAL MOCK DATABASE STATES
@@ -542,6 +543,166 @@ export default function App() {
         });
     };
 
+    const handleTriggerScenario = (scenario) => {
+        let sc;
+        if (typeof scenario === 'string') {
+            const scenarios = {
+                sanjay: {
+                    userId: 'USR-3012-IT',
+                    userName: 'Sanjay Mehta',
+                    riskScore: 94,
+                    title: 'Direct SSH connection to Core Ledger server bypassing PAM Broker',
+                    category: 'Privileged Bypass',
+                    severity: 'CRITICAL',
+                    time: 'Just now',
+                    actionText: 'Direct console login bypassed CyberArk security Broker.',
+                    toastTitle: 'Critical Alert Triggered',
+                    toastDesc: 'Sanjay Mehta directly SSHed to Core Ledger (PAM Bypass).'
+                },
+                rohan: {
+                    userId: 'USR-8204-MOM',
+                    userName: 'Rohan Deshmukh',
+                    riskScore: 98,
+                    title: 'Anomalous Database Query Volume (52,490 Customer records)',
+                    category: 'Data Exfiltration',
+                    severity: 'CRITICAL',
+                    time: 'Just now',
+                    actionText: 'Policy Engine triggered ALERT: Customer record queries exceeded hourly threshold.',
+                    toastTitle: 'Critical Alert Triggered',
+                    toastDesc: 'Rohan Deshmukh fetched 52,490 customer records.'
+                },
+                amit: {
+                    userId: 'USR-5561-IT',
+                    userName: 'Amit Shinde',
+                    riskScore: 92,
+                    title: 'Blocked modification of core routing tables on bank firewall',
+                    category: 'System Sabotage',
+                    severity: 'CRITICAL',
+                    time: 'Just now',
+                    actionText: 'AD Integration blocked CLI update on routing tables for Central FW.',
+                    toastTitle: 'Critical Alert Triggered',
+                    toastDesc: 'Amit Shinde attempted core routing table alterations.'
+                },
+                sneha: {
+                    userId: 'USR-4819-WLM',
+                    userName: 'Sneha Kulkarni',
+                    riskScore: 87,
+                    title: 'Bulk download of premium client profiles (120 dossier exports)',
+                    category: 'Data Abuse',
+                    severity: 'HIGH',
+                    time: 'Just now',
+                    actionText: 'Dossier retrieval alerts flagged on system log.',
+                    toastTitle: 'High Alert Triggered',
+                    toastDesc: 'Sneha Kulkarni downloaded 120 Client Profile Dossiers.'
+                }
+            };
+            sc = scenarios[scenario];
+        } else {
+            // Advanced dynamic payload from Simulation Lab
+            const userObj = users.find(u => u.id === scenario.targetUserId);
+            const calculatedRisk = scenario.severity === 'CRITICAL' ? 96 : scenario.severity === 'HIGH' ? 84 : 58;
+            sc = {
+                userId: scenario.targetUserId,
+                userName: userObj ? userObj.name : 'Unknown User',
+                riskScore: calculatedRisk,
+                title: `${scenario.attackType} on ${scenario.targetSystem} - ${scenario.description}`,
+                category: scenario.attackType,
+                severity: scenario.severity,
+                time: 'Just now',
+                actionText: `Lab simulation run: [${scenario.attackType}] targeted server [${scenario.targetSystem}]. Payload details: ${scenario.description}`,
+                toastTitle: `Lab Incident Triggered`,
+                toastDesc: `Simulated ${scenario.attackType} on ${scenario.targetSystem} (Score: ${calculatedRisk}).`
+            };
+        }
+
+        if (!sc) return;
+
+        // 1. Update user risk score, status, timelines and signal indexes
+        setUsers(prev => prev.map(u => {
+            if (u.id === sc.userId) {
+                const isCritical = sc.severity === 'CRITICAL' || sc.severity === 'HIGH';
+                
+                // Construct a new dynamic signal entry
+                const newSignals = [
+                    { 
+                        type: sc.category.toLowerCase().includes('data') ? 'database' : 'lock', 
+                        title: sc.category, 
+                        desc: sc.title, 
+                        severity: isCritical ? 'red' : 'amber', 
+                        tag: 'Lab Simulated' 
+                    },
+                    ...(u.contributingSignals || [])
+                ];
+
+                // Append an timeline node to user dossier
+                const newTimeline = [
+                    ...(u.timeline || []),
+                    { 
+                        time: 'Just now', 
+                        title: sc.category, 
+                        status: isCritical ? 'anomaly' : 'warning', 
+                        risk: sc.riskScore 
+                    }
+                ];
+
+                // Inject dynamic baseline drift entry
+                const updatedBaselines = [...(u.baselineComparisons || [])];
+                const activeMetrics = updatedBaselines.length > 0 ? updatedBaselines[updatedBaselines.length - 1].metrics : [];
+                
+                const simMetric = { 
+                    name: 'Lab Drift Deviation', 
+                    baseline: '0% anomaly threshold', 
+                    current: '100% Critical Deviation', 
+                    status: 'Critical Anomaly' 
+                };
+
+                // Add to baseline comparisons metrics
+                const freshMetrics = [simMetric, ...activeMetrics.slice(0, 3)];
+                updatedBaselines.push({ metrics: freshMetrics });
+
+                return { 
+                    ...u, 
+                    riskScore: sc.riskScore, 
+                    status: 'Active', 
+                    contributingSignals: newSignals,
+                    timeline: newTimeline,
+                    baselineComparisons: updatedBaselines
+                };
+            }
+            return u;
+        }));
+
+        // 2. Add alert to feed
+        setAlerts(prev => {
+            const userObj = users.find(u => u.id === sc.userId);
+            const newAlert = {
+                id: `ALT-${Math.floor(Math.random() * 1000) + 1000}`,
+                userId: sc.userId,
+                userName: sc.userName,
+                dept: userObj ? userObj.dept : 'Operations',
+                title: sc.title,
+                riskScore: sc.riskScore,
+                severity: sc.severity,
+                time: sc.time,
+                icon: sc.severity === 'CRITICAL' ? 'lock' : 'database',
+                category: sc.category
+            };
+            return [newAlert, ...prev];
+        });
+
+        // 3. Add to cryptographically signed compliance logs
+        addAuditEntry(
+            '10.144.12.89',
+            `${sc.userId} (${sc.userName})`,
+            sc.actionText,
+            sc.severity
+        );
+
+        // 4. Trigger Toast notification banner
+        addToast(sc.toastTitle, sc.toastDesc, sc.severity === 'CRITICAL' ? 'high' : 'medium');
+        setHasUnreadNotifications(true);
+    };
+
     const handleExportAuditLog = (format) => {
         addToast('Export Triggered', `Compiling cryptographically signed ${format} ledger payload...`, 'success');
         setTimeout(() => {
@@ -573,12 +734,12 @@ export default function App() {
         addAuditEntry('10.144.12.89', 'Security Policy Settings', `Deleted auto-mitigation rule ${ruleId} from active sequence.`, 'HIGH');
     };
 
-    const handleAddRule = () => {
+    const handleAddRule = (expression, action) => {
         const nextId = 'R' + (rules.length + 1);
         const newRule = {
             id: nextId,
-            expression: 'IF (AlertCategory == "Data Exfiltration") AND (UserClearance < L4)',
-            action: 'Lock Workstation Terminal',
+            expression: expression || 'IF (AlertCategory == "Data Exfiltration") AND (UserClearance < L4)',
+            action: action || 'Lock Workstation Terminal',
             enabled: true
         };
         
@@ -617,11 +778,13 @@ export default function App() {
 
     return (
         <>
-            <div className="app-shell">
+            <div className={`app-shell ${sidebarCollapsed ? 'collapsed-sidebar' : ''}`}>
                 <Sidebar 
                     currentView={currentView} 
                     onViewChange={setCurrentView} 
                     currentUser={currentUser} 
+                    collapsed={sidebarCollapsed}
+                    onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                 />
                 
                 <div className="main-content">
@@ -639,6 +802,7 @@ export default function App() {
                                 users={users}
                                 alerts={alerts}
                                 onInvestigateUser={handleInvestigateUser}
+                                onTriggerScenario={handleTriggerScenario}
                                 onDismissAllAlerts={() => {
                                     setAlerts([]);
                                     setHasUnreadNotifications(false);

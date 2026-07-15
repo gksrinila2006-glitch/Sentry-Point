@@ -40,7 +40,7 @@ export default function Reports({ onSimulateDownload }) {
                     plugins: {
                         legend: {
                             position: 'right',
-                            labels: { font: { family: 'Inter', size: 11 } }
+                            labels: { color: '#475569', font: { family: 'Inter', size: 11 } }
                         }
                     }
                 }
@@ -62,7 +62,7 @@ export default function Reports({ onSimulateDownload }) {
                     datasets: [{
                         label: 'Average Department Risk Score',
                         data: [78, 72, 48, 28, 12],
-                        backgroundColor: '#1E3A8A',
+                        backgroundColor: '#2563eb', // Cobalt Blue
                         borderRadius: 6,
                         borderWidth: 0
                     }]
@@ -77,10 +77,12 @@ export default function Reports({ onSimulateDownload }) {
                         y: {
                             min: 0,
                             max: 100,
-                            ticks: { font: { family: 'Inter' } }
+                            grid: { color: 'rgba(15, 23, 42, 0.06)' },
+                            ticks: { color: '#475569', font: { family: 'Inter' } }
                         },
                         x: {
-                            ticks: { font: { family: 'Inter' } }
+                            grid: { display: false },
+                            ticks: { color: '#475569', font: { family: 'Inter' } }
                         }
                     }
                 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Shield, Users, FileText, Settings, Activity, BarChart2 } from 'lucide-react';
 
-export default function Sidebar({ currentView, onViewChange, currentUser }) {
+export default function Sidebar({ currentView, onViewChange, currentUser, collapsed, onToggleCollapse }) {
     const menuItems = [
         { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
         { id: 'investigations', name: 'Investigations', icon: Activity },
@@ -21,13 +21,47 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
     };
 
     return (
-        <aside className="sidebar">
-            <div className="sidebar-brand">
+        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-brand" style={{ position: 'relative' }}>
                 <div className="sidebar-logo">
                     <Shield fill="#0B132B" strokeWidth={2} />
                 </div>
-                <h1 className="sidebar-title">Sentry<span>Point</span></h1>
+                {!collapsed && <h1 className="sidebar-title">Sentry<span>Point</span></h1>}
+                <button 
+                    className="sidebar-collapse-btn-inner" 
+                    onClick={onToggleCollapse} 
+                    style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: 'var(--text-light-muted)', 
+                        cursor: 'pointer', 
+                        marginLeft: 'auto', 
+                        fontSize: '0.8rem',
+                        display: collapsed ? 'none' : 'block'
+                    }}
+                    title="Collapse Sidebar"
+                >
+                    ◀
+                </button>
             </div>
+            
+            {collapsed && (
+                <div style={{ textAlign: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button 
+                        onClick={onToggleCollapse} 
+                        style={{ 
+                            background: 'none', 
+                            border: 'none', 
+                            color: 'var(--text-light-muted)', 
+                            cursor: 'pointer',
+                            fontSize: '0.8rem'
+                        }}
+                        title="Expand Sidebar"
+                    >
+                        ▶
+                    </button>
+                </div>
+            )}
             
             <ul className="sidebar-menu">
                 {menuItems.map(item => {
@@ -35,7 +69,7 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
                     const isActive = currentView === item.id;
                     return (
                         <li key={item.id} className={`sidebar-item ${isActive ? 'active' : ''}`}>
-                            <a href="#" className="sidebar-link" onClick={(e) => { e.preventDefault(); onViewChange(item.id); }}>
+                            <a href="#" className="sidebar-link" onClick={(e) => { e.preventDefault(); onViewChange(item.id); }} title={item.name}>
                                 <Icon />
                                 <span>{item.name}</span>
                             </a>

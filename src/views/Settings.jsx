@@ -5,6 +5,13 @@ export default function Settings({ rules, onToggleRule, onDeleteRule, onAddRule,
     const [threshold, setThreshold] = useState(70);
     const [drift, setDrift] = useState(45);
     
+    // Interactive Rule Builder States
+    const [showBuilder, setShowBuilder] = useState(false);
+    const [attribute, setAttribute] = useState('RiskIndex');
+    const [operator, setOperator] = useState('>');
+    const [valInput, setValInput] = useState('80');
+    const [actionSelect, setActionSelect] = useState('Trigger Step-Up MFA Challenge');
+    
     // Switch state placeholders
     const [siemSync, setSiemSync] = useState(true);
     const [adBlock, setAdBlock] = useState(true);
@@ -94,10 +101,75 @@ export default function Settings({ rules, onToggleRule, onDeleteRule, onAddRule,
                         ))}
                     </div>
                     
-                    <button className="btn btn-outline mt-12" onClick={onAddRule} style={{ width: 'auto' }}>
-                        <Plus size={14} style={{ marginRight: '6px' }} />
-                        Add Auto-Mitigation Policy Rule
-                    </button>
+                    {showBuilder ? (
+                        <div className="rule-builder-form">
+                            <div className="rule-builder-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Condition Attribute</label>
+                                <select className="select-input w-full" value={attribute} onChange={(e) => setAttribute(e.target.value)}>
+                                    <option value="RiskIndex">RiskIndex</option>
+                                    <option value="DeviationPct">DeviationPct</option>
+                                    <option value="Connection">Connection Source</option>
+                                    <option value="UserClearance">User Clearance Scope</option>
+                                    <option value="AlertCategory">Alert Category</option>
+                                </select>
+                            </div>
+
+                            <div className="rule-builder-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Operator</label>
+                                <select className="select-input w-full" value={operator} onChange={(e) => setOperator(e.target.value)}>
+                                    <option value=">">&gt; (Greater than)</option>
+                                    <option value="<">&lt; (Less than)</option>
+                                    <option value="==">== (Equals)</option>
+                                    <option value="!=">!= (Not Equals)</option>
+                                </select>
+                            </div>
+
+                            <div className="rule-builder-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Threshold Value</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    style={{ padding: '9px 12px' }}
+                                    value={valInput} 
+                                    onChange={(e) => setValInput(e.target.value)} 
+                                    placeholder='e.g., 80, "Tor VPN", "Direct SSH"'
+                                />
+                            </div>
+
+                            <div className="rule-builder-group">
+                                <label className="form-label" style={{ fontSize: '0.75rem' }}>Mitigation Action</label>
+                                <select className="select-input w-full" value={actionSelect} onChange={(e) => setActionSelect(e.target.value)}>
+                                    <option value="Trigger Step-Up MFA Challenge">Trigger Step-Up MFA Challenge</option>
+                                    <option value="Suspend Token Access Immediately">Suspend Token Access Immediately</option>
+                                    <option value="Block Connection & Alert Analyst">Block Connection & Alert Analyst</option>
+                                    <option value="Lock Workstation Terminal">Lock Workstation Terminal</option>
+                                    <option value="Escalate incident summary dossier to CISO">Escalate incident summary dossier to CISO</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-8 mt-12" style={{ gridColumn: 'span 2', justifyContent: 'flex-end' }}>
+                                <button className="btn btn-outline" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }} onClick={() => setShowBuilder(false)}>
+                                    Cancel
+                                </button>
+                                <button 
+                                    className="btn btn-primary" 
+                                    style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem', color: '#0b132b' }} 
+                                    onClick={() => {
+                                        const expression = `IF (${attribute} ${operator} ${valInput})`;
+                                        onAddRule(expression, actionSelect);
+                                        setShowBuilder(false);
+                                    }}
+                                >
+                                    Compile & Apply Policy
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button className="btn btn-outline mt-12" onClick={() => setShowBuilder(true)} style={{ width: 'auto' }}>
+                            <Plus size={14} style={{ marginRight: '6px' }} />
+                            Create Mitigation Rule
+                        </button>
+                    )}
                 </div>
 
                 <div className="settings-group" style={{ borderBottom: 'none', paddingBottom: 0 }}>
